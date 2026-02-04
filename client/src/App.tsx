@@ -4,10 +4,9 @@ function App() {
   const [user, setUser] = useState("")
   const [password, setPassword] = useState("")
 
-  const handleUser = e => setUser(e.target.value)
-  const handlePassword = e => setPassword(e.target.value)
-
-  const handleSubmit = e => {
+  const handleUser = (e: React.ChangeEvent<HTMLInputElement>) => setUser(e.target.value)
+  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)
+  const handleSubmit = (e: React.SubmitEvent<HTMLInputElement>) => {
     e.preventDefault()
 
     const newUser = { user: user, password: password }
