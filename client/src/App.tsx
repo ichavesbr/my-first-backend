@@ -3,6 +3,7 @@ import { useState } from "react"
 function App() {
   const [user, setUser] = useState("")
   const [password, setPassword] = useState("")
+  const [serverResponse, setServerResponse] = useState([])
 
   const handleUser = (e: React.ChangeEvent<HTMLInputElement>) => setUser(e.target.value)
   const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)
@@ -10,8 +11,13 @@ function App() {
     e.preventDefault()
 
     const newUser = { user: user, password: password }
-
-    console.log("form enviado", newUser)
+    fetch("http://localhost:1000/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newUser),
+    })
+      .then(res => res.json())
+      .then(data => setServerResponse(data))
   }
 
   return (
@@ -32,6 +38,8 @@ function App() {
 
           <button className="bg-amber-800 px-5 py-2">REGISTER</button>
         </form>
+        <hr />
+        {serverResponse}
       </div>
     </>
   )
