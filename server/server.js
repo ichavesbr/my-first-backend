@@ -1,5 +1,5 @@
 const express = require("express")
-const { getUsers, createUser } = require("./db")
+const { getUsers, createUser, getUsersByID } = require("./db")
 const cors = require("cors")
 const app = express()
 
@@ -14,6 +14,17 @@ app.get("/register", async (req, res) => {
   try {
     const users = await getUsers()
     res.json(users)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// MOSTRA USER POR ID
+app.get("/register/:id", async (req, res) => {
+  try {
+    const id = req.params.id
+    const user = await getUsersByID(id)
+    res.json(user)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

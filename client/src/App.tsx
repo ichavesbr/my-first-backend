@@ -1,9 +1,15 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 function App() {
   const [user, setUser] = useState("")
   const [password, setPassword] = useState("")
   const [serverResponse, setServerResponse] = useState([])
+
+  const checkDB = async () => {
+    fetch("http://localhost:1000/register")
+      .then(res => res.json())
+      .then(data => setServerResponse(data))
+  }
 
   const handleUser = (e: React.ChangeEvent<HTMLInputElement>) => setUser(e.target.value)
   const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)
@@ -15,10 +21,13 @@ function App() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newUser),
-    })
-      .then(res => res.json())
-      .then(data => setServerResponse(data))
+    }).then(res => res.json())
+    checkDB()
   }
+
+  useEffect(() => {
+    checkDB()
+  }, [])
 
   return (
     <>
@@ -27,19 +36,31 @@ function App() {
 
         <form onSubmit={handleSubmit} className="flex items-center gap-4 border p-8">
           <div className="flex gap-2">
-            <label htmlFor="user">User:</label>
+            <label id="user">User:</label>
             <input type="text" className="border" value={user} onChange={handleUser} />
           </div>
 
           <div className="flex gap-2">
-            <label htmlFor="user">Password:</label>
+            <label id="password">Password:</label>
             <input type="password" className="border" value={password} onChange={handlePassword} />
           </div>
 
           <button className="bg-amber-800 px-5 py-2">REGISTER</button>
         </form>
         <hr />
-        {serverResponse}
+      </div>
+
+      <div className="flex flex-col justify-center items-center">
+        <div className="text-4xl mb-4">Usuários cadastrados</div>
+        {serverResponse.map(({ id, user, password }, index) => (
+          <div key={index} className="flex gap-4 justify-center items-center m-2 p-2 bg-gray-600">
+            <div>{id}</div>
+            <div>{user}</div>
+            <div>{password}</div>
+            <button className="bg-amber-600  p-1">EDIT</button>
+            <button className="bg-amber-600 p-1">DELETE</button>
+          </div>
+        ))}
       </div>
     </>
   )

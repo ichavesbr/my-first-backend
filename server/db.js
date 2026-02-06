@@ -18,6 +18,13 @@ const getUsers = async () => {
   return user
 }
 
+const getUsersByID = async id => {
+  const db = await connectDB()
+  const sql = "SELECT * FROM my_users WHERE ID = ?"
+  const [userByID] = await db.execute(sql, [id])
+  return userByID
+}
+
 const createUser = async (user, password) => {
   const db = await connectDB()
   const sql = "INSERT INTO my_users (user, password) VALUES (?, ?)"
@@ -28,4 +35,4 @@ const createUser = async (user, password) => {
 // MOSTRAR USER INDIVIDUALMENTE POR ID NA URL /1 /2 /3 etc
 
 // module.exports = connectDB
-module.exports = { getUsers, createUser }
+module.exports = { getUsers, createUser, getUsersByID }
