@@ -6,23 +6,35 @@ function App() {
   const [serverResponse, setServerResponse] = useState([])
 
   const checkDB = async () => {
-    fetch("http://localhost:1000/register")
+    fetch("http://localhost:1000/users")
       .then(res => res.json())
       .then(data => setServerResponse(data))
   }
 
   const handleUser = (e: React.ChangeEvent<HTMLInputElement>) => setUser(e.target.value)
   const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)
+
   const handleSubmit = (e: React.SubmitEvent<HTMLInputElement>) => {
     e.preventDefault()
 
     const newUser = { user: user, password: password }
+
     fetch("http://localhost:1000/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newUser),
-    }).then(res => res.json())
-    checkDB()
+    }).then(res => checkDB())
+
+    setUser("")
+    setPassword("")
+  }
+
+  const handleDelete = (id: number) => {
+    fetch(`http://localhost:1000/delete/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "Authorization" },
+      body: JSON.stringify(id),
+    }).then(res => checkDB())
   }
 
   useEffect(() => {
@@ -58,7 +70,9 @@ function App() {
             <div>{user}</div>
             <div>{password}</div>
             <button className="bg-amber-600  p-1">EDIT</button>
-            <button className="bg-amber-600 p-1">DELETE</button>
+            <button onClick={() => handleDelete(id)} className="bg-amber-600 p-1">
+              DELETE
+            </button>
           </div>
         ))}
       </div>
