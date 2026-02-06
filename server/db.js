@@ -7,7 +7,6 @@ const connectDB = async () => {
     password: "root",
     database: "cadastro",
   })
-  console.log("banco de dados mysql conectado")
   return db
 }
 
@@ -32,7 +31,11 @@ const createUser = async (user, password) => {
   return { id: result.insertId, user, password }
 }
 
-// MOSTRAR USER INDIVIDUALMENTE POR ID NA URL /1 /2 /3 etc
+const deleteUser = async id => {
+  const db = await connectDB()
+  const sql = "DELETE FROM my_users WHERE ID = ?"
+  const [userByID] = await db.execute(sql, [id])
+  return userByID
+}
 
-// module.exports = connectDB
-module.exports = { getUsers, createUser, getUsersByID }
+module.exports = { getUsers, createUser, getUsersByID, deleteUser }
