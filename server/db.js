@@ -31,6 +31,13 @@ const createUser = async (user, password) => {
   return { id: result.insertId, user, password }
 }
 
+const editUser = async (id, newUser, newPassword) => {
+  const db = await connectDB()
+  const sql = "UPDATE my_users SET user=?, password=? WHERE ID = ? "
+  const [userByID] = await db.execute(sql, [newUser, newPassword, id])
+  return { user, password }
+}
+
 const deleteUser = async id => {
   const db = await connectDB()
   const sql = "DELETE FROM my_users WHERE ID = ?"
@@ -38,4 +45,4 @@ const deleteUser = async id => {
   return userByID
 }
 
-module.exports = { getUsers, createUser, getUsersByID, deleteUser }
+module.exports = { getUsers, createUser, getUsersByID, deleteUser, editUser }
