@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 
 function App() {
   const [user, setUser] = useState("")
   const [password, setPassword] = useState("")
   const [serverResponse, setServerResponse] = useState([])
 
-  const checkDB = async () => {
+  const checkDB = () => {
     fetch("http://localhost:1000/users")
       .then(res => res.json())
       .then(data => setServerResponse(data))
@@ -23,7 +24,7 @@ function App() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newUser),
-    }).then(res => checkDB())
+    }).then(() => checkDB())
 
     setUser("")
     setPassword("")
@@ -34,7 +35,7 @@ function App() {
       method: "DELETE",
       headers: { "Content-Type": "Authorization" },
       body: JSON.stringify(id),
-    }).then(res => checkDB())
+    }).then(() => checkDB())
   }
 
   useEffect(() => {
@@ -69,7 +70,9 @@ function App() {
             <div>{id}</div>
             <div>{user}</div>
             <div>{password}</div>
-            <button className="bg-amber-600  p-1">EDIT</button>
+
+            <Link to={`/users/${id}`}>EDIT</Link>
+
             <button onClick={() => handleDelete(id)} className="bg-amber-600 p-1">
               DELETE
             </button>
