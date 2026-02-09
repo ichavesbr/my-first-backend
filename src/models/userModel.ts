@@ -32,3 +32,5 @@ const updateUser = async (id: number, name: string, email: string): Promise<User
 const deleteUser = async (id: number): Promise<void> => {
   await pool.query("DELETE FROM users WHERE id = ?", [id])
 }
+
+export { getAllUsers, getUserById, createUser, updateUser, deleteUser }
