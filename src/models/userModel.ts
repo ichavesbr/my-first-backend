@@ -19,7 +19,7 @@ const getUserById = async (id: number): Promise<User | null> => {
 }
 
 const createUser = async (name: string, email: string): Promise<User> => {
-  const [result]: any = await pool.query("INSERT INTO users (name, email) VALUES = (?, ?)", [name, email])
+  const [result]: any = await pool.query("INSERT INTO users (name, email) VALUES (?, ?)", [name, email])
 
   return { id: result.insertId, name, email }
 }

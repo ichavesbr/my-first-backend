@@ -1,15 +1,18 @@
 import type { Request, Response } from "express"
 import { createUser, deleteUser, getAllUsers, getUserById, updateUser } from "../models/userModel.js"
 
-const internalServerErrorMsg = (res: Response) => res.status(500).json({ message: "Internal server error" })
+const internalServerErrorMsg = (res: Response, error: any) => {
+  console.error(error)
+  res.status(500).json({ message: "Internal server error" })
+}
 
 const getUsersHandler = async (req: Request, res: Response) => {
   try {
     const users = await getAllUsers()
 
     res.json(users)
-  } catch (error) {
-    internalServerErrorMsg(res)
+  } catch (error: any) {
+    internalServerErrorMsg(res, error)
   }
 }
 
@@ -21,8 +24,8 @@ const getUserByIdHandler = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: "User not found" })
 
     res.json(user)
-  } catch {
-    internalServerErrorMsg(res)
+  } catch (error: any) {
+    internalServerErrorMsg(res, error)
   }
 }
 
@@ -36,7 +39,7 @@ const createUserHandler = async (req: Request, res: Response) => {
 
     res.status(201).json(newUser)
   } catch (error: any) {
-    internalServerErrorMsg(res)
+    internalServerErrorMsg(res, error)
   }
 }
 
@@ -51,8 +54,8 @@ const updateUserHandler = async (req: Request, res: Response) => {
     const updated = await updateUser(id, name ?? existing.name, email ?? existing.email)
 
     res.json(updated)
-  } catch {
-    internalServerErrorMsg(res)
+  } catch (error: any) {
+    internalServerErrorMsg(res, error)
   }
 }
 
@@ -66,8 +69,8 @@ const deleteUserHandler = async (req: Request, res: Response) => {
     await deleteUser(id)
 
     res.status(204).send()
-  } catch {
-    internalServerErrorMsg(res)
+  } catch (error: any) {
+    internalServerErrorMsg(res, error)
   }
 }
 
