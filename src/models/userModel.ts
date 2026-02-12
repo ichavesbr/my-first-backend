@@ -4,6 +4,7 @@ export interface User {
   id: number
   name: string
   email: string
+  password: string
   created_at?: Date
 }
 
@@ -18,15 +19,19 @@ const getUserById = async (id: number): Promise<User | null> => {
   return users[0] || null
 }
 
-const createUser = async (name: string, email: string): Promise<User> => {
-  const [result]: any = await pool.query("INSERT INTO users (name, email) VALUES (?, ?)", [name, email])
+const createUser = async (name: string, email: string, password: string): Promise<User> => {
+  const [result]: any = await pool.query("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [
+    name,
+    email,
+    password,
+  ])
 
-  return { id: result.insertId, name, email }
+  return { id: result.insertId, name, email, password }
 }
 
-const updateUser = async (id: number, name: string, email: string): Promise<User> => {
-  await pool.query("UPDATE users SET name = ?, email = ? WHERE id = ?", [name, email, id])
-  return { id, name, email }
+const updateUser = async (id: number, name: string, email: string, password: string): Promise<User> => {
+  await pool.query("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?", [name, email, password, id])
+  return { id, name, email, password }
 }
 
 const deleteUser = async (id: number): Promise<void> => {

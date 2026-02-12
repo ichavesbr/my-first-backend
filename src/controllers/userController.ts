@@ -31,11 +31,11 @@ const getUserByIdHandler = async (req: Request, res: Response) => {
 
 const createUserHandler = async (req: Request, res: Response) => {
   try {
-    const { name, email } = req.body
+    const { name, email, password } = req.body
 
-    if (!name || !email) return res.status(400).json({ message: "Name and email are required" })
+    if (!name || !email || !password) return res.status(400).json({ message: "Name, email and password are required" })
 
-    const newUser = await createUser(name, email)
+    const newUser = await createUser(name, email, password)
 
     res.status(201).json(newUser)
   } catch (error: any) {
@@ -46,12 +46,12 @@ const createUserHandler = async (req: Request, res: Response) => {
 const updateUserHandler = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id)
-    const { name, email } = req.body
+    const { name, email, password } = req.body
     const existing = await getUserById(id)
 
     if (!existing) return res.status(404).json({ message: "User not found" })
 
-    const updated = await updateUser(id, name ?? existing.name, email ?? existing.email)
+    const updated = await updateUser(id, name ?? existing.name, email ?? existing.email, password ?? existing.password)
 
     res.json(updated)
   } catch (error: any) {
