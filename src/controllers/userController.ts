@@ -1,5 +1,6 @@
 import type { Request, Response } from "express"
 import { createUser, deleteUser, getAllUsers, getUserByEmail, getUserById, updateUser } from "../models/userModel.js"
+import bcrypt from "bcrypt"
 
 const internalServerErrorMsg = (res: Response, error: any) => {
   console.error(error)
@@ -32,10 +33,11 @@ const getUserByIdHandler = async (req: Request, res: Response) => {
 const createUserHandler = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body
+    const hashedPassword = await bcrypt.hash(password, 10)
 
     if (!name || !email || !password) return res.status(400).json({ message: "Name, email and password are required" })
 
-    const newUser = await createUser(name, email, password)
+    const newUser = await createUser(name, email, hashedPassword)
 
     res.status(201).json(newUser)
   } catch (error: any) {
@@ -47,13 +49,15 @@ const updateUserHandler = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id)
     const { name, email, password } = req.body
-    const existing = await getUserById(id)
+    const hashedPassword = await bcrypt.hash(password, 10)
 
-    if (!existing) return res.status(404).json({ message: "User not found" })
+    const user = await getUserById(id)
 
-    const updated = await updateUser(id, name ?? existing.name, email ?? existing.email, password ?? existing.password)
+    if (!user) return res.status(404).json({ message: "User not found" })
 
-    res.json(updated)
+    const editedUser = await updateUser(id, name, email, hashedPassword)
+
+    res.json(editedUser)
   } catch (error: any) {
     internalServerErrorMsg(res, error)
   }
@@ -62,9 +66,9 @@ const updateUserHandler = async (req: Request, res: Response) => {
 const deleteUserHandler = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id)
-    const existing = await getUserById(id)
+    const user = await getUserById(id)
 
-    if (!existing) return res.status(404).json({ message: "User not found" })
+    if (!user) return res.status(404).json({ message: "User not found" })
 
     await deleteUser(id)
 
@@ -76,12 +80,12 @@ const deleteUserHandler = async (req: Request, res: Response) => {
 
 const getUserByEmailHandler = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body
-    const existing = await getUserByEmail(email)
+    const { email } = req.body
+    const user = await getUserByEmail(email)
 
-    if (!existing) return res.status(404).json({ message: "User not found" })
+    if (!user) return res.status(404).json({ message: "User not found" })
 
-    res.json(existing)
+    res.json(user)
   } catch (error: any) {
     internalServerErrorMsg(res, error)
   }
