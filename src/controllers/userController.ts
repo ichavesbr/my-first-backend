@@ -1,6 +1,7 @@
 import type { Request, Response } from "express"
 import { createUser, deleteUser, getAllUsers, getUserByEmail, getUserById, updateUser } from "../models/userModel.js"
 import bcrypt from "bcrypt"
+import { createToken } from "./authController.js"
 
 const internalServerErrorMsg = (res: Response, error: any) => {
   console.error(error)
@@ -38,8 +39,9 @@ const createUserHandler = async (req: Request, res: Response) => {
     if (!name || !email || !password) return res.status(400).json({ message: "Name, email and password are required" })
 
     const newUser = await createUser(name, email, hashedPassword)
-
-    res.status(201).json(newUser)
+    const token = createToken(newUser.id)
+    res.cookie("jwt", token, { httpOnly: true, maxAge: 1000 * 3 * 24 * 60 * 60 })
+    res.status(201).json({ user: newUser.id })
   } catch (error: any) {
     internalServerErrorMsg(res, error)
   }
