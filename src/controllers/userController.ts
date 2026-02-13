@@ -1,5 +1,5 @@
 import type { Request, Response } from "express"
-import { createUser, deleteUser, getAllUsers, getUserById, updateUser } from "../models/userModel.js"
+import { createUser, deleteUser, getAllUsers, getUserByEmail, getUserById, updateUser } from "../models/userModel.js"
 
 const internalServerErrorMsg = (res: Response, error: any) => {
   console.error(error)
@@ -74,4 +74,24 @@ const deleteUserHandler = async (req: Request, res: Response) => {
   }
 }
 
-export { getUsersHandler, getUserByIdHandler, createUserHandler, updateUserHandler, deleteUserHandler }
+const getUserByEmailHandler = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body
+    const existing = await getUserByEmail(email)
+
+    if (!existing) return res.status(404).json({ message: "User not found" })
+
+    res.json(existing)
+  } catch (error: any) {
+    internalServerErrorMsg(res, error)
+  }
+}
+
+export {
+  getUsersHandler,
+  getUserByIdHandler,
+  createUserHandler,
+  updateUserHandler,
+  deleteUserHandler,
+  getUserByEmailHandler,
+}
