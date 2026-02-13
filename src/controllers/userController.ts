@@ -1,7 +1,7 @@
 import type { Request, Response } from "express"
 import { createUser, deleteUser, getAllUsers, getUserByEmail, getUserById, updateUser } from "../models/userModel.js"
-import bcrypt from "bcrypt"
 import { createToken } from "./authController.js"
+import bcrypt from "bcrypt"
 
 const internalServerErrorMsg = (res: Response, error: any) => {
   console.error(error)

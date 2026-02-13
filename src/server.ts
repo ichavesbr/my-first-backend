@@ -4,7 +4,7 @@ import express from "express"
 import cookieParser from "cookie-parser"
 import { router } from "./routes/userRoutes.js"
 import { routerCookie } from "./routes/cookiesRoute.js"
-
+import { loginRoute } from "./routes/loginRoute.js"
 dotenv.config()
 
 const app = express()
@@ -16,6 +16,7 @@ app.use(express.json())
 
 app.use("/api/users", router)
 app.use("/api/cookies", routerCookie)
+app.use("/api/login", loginRoute)
 app.get("/", (req, res) => res.json({ message: "API is running" }))
 
 app.listen(PORT, () => console.log(`Server running on port: ${PORT}`))

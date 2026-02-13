@@ -1,14 +1,10 @@
 import { pool } from "../config/db.js"
-import bcrypt from "bcrypt"
-// usar depois segundo a documentacao do bcrypt
-// await bcrypt.compare(password, hash);
 
 export interface User {
   id: number
   name: string
   email: string
-  password?: string
-  hashedPassword?: string
+  password: string
   created_at?: Date
 }
 
@@ -42,7 +38,7 @@ const deleteUser = async (id: number): Promise<void> => {
   await pool.query("DELETE FROM users WHERE id = ?", [id])
 }
 
-const getUserByEmail = async (email: number): Promise<User | null> => {
+const getUserByEmail = async (email: string): Promise<User | null> => {
   const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email])
   const user = rows as User[]
   return user[0] || null
