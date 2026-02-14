@@ -15,17 +15,22 @@ const internalServerErrorMsg = (res: Response, error: any) => {
 const loginHandler = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body
-    if (!email || !password) return res.send("❌❌❌❌   please insert email AND password    ❌❌❌❌")
+    if (!email || !password) return res.status(400).send("Please insert email AND password")
 
     const user = await getUserByEmail(email)
-    if (!user) return res.send("❌❌❌❌   EMAIL not registered    ❌❌❌❌")
+    if (!user) return res.status(404).send("Email not registered")
 
-    const auth = await bcrypt.compare(password, user.password)
-    if (!auth) return res.send("❌❌❌❌   PASSWORD is wrong    ❌❌❌❌")
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) return res.status(401).send("Password is wrong")
 
-    res.send("✅✅✅✅   user logged, welcome   ✅✅✅✅")
-  } catch (error: any) {
-    internalServerErrorMsg(res, error)
+    if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET not defined")
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" })
+
+    return res.status(200).json({ message: "User logged successfully", token })
+  } catch (error: unknown) {
+    console.error("Internal Server Error:", error)
+    return res.status(500).json({ success: false, message: "Internal server error" })
   }
 }
+
 export { loginHandler, createToken }
