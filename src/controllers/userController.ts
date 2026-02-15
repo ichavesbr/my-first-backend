@@ -1,9 +1,9 @@
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
 import type { Request, Response } from "express"
 import { createUser, deleteUser, getAllUsers, getUserByEmail, getUserById, updateUser } from "../models/userModel.js"
-import { createToken } from "./authController.js"
-import bcrypt from "bcrypt"
 
-const internalServerErrorMsg = (res: Response, error: any) => {
+const internalServerErrorMsg = (res: Response, error: unknown) => {
   console.error(error)
   res.status(500).json({ message: "Internal server error" })
 }
@@ -13,7 +13,7 @@ const getUsersHandler = async (req: Request, res: Response) => {
     const users = await getAllUsers()
 
     res.json(users)
-  } catch (error: any) {
+  } catch (error: unknown) {
     internalServerErrorMsg(res, error)
   }
 }
@@ -26,7 +26,7 @@ const getUserByIdHandler = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: "User not found" })
 
     res.json(user)
-  } catch (error: any) {
+  } catch (error: unknown) {
     internalServerErrorMsg(res, error)
   }
 }
@@ -39,10 +39,13 @@ const createUserHandler = async (req: Request, res: Response) => {
     if (!name || !email || !password) return res.status(400).json({ message: "Name, email and password are required" })
 
     const newUser = await createUser(name, email, hashedPassword)
-    const token = createToken(newUser.id)
+
+    if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET not defined")
+
+    const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, { expiresIn: "1h" })
     res.cookie("jwt", token, { httpOnly: true, maxAge: 1000 * 3 * 24 * 60 * 60 })
     res.status(201).json({ user: newUser.id })
-  } catch (error: any) {
+  } catch (error: unknown) {
     internalServerErrorMsg(res, error)
   }
 }
@@ -60,7 +63,7 @@ const updateUserHandler = async (req: Request, res: Response) => {
     const editedUser = await updateUser(id, name, email, hashedPassword)
 
     res.json(editedUser)
-  } catch (error: any) {
+  } catch (error: unknown) {
     internalServerErrorMsg(res, error)
   }
 }
@@ -75,7 +78,7 @@ const deleteUserHandler = async (req: Request, res: Response) => {
     await deleteUser(id)
 
     res.status(204).send()
-  } catch (error: any) {
+  } catch (error: unknown) {
     internalServerErrorMsg(res, error)
   }
 }
@@ -88,7 +91,7 @@ const getUserByEmailHandler = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: "User not found" })
 
     res.json(user)
-  } catch (error: any) {
+  } catch (error: unknown) {
     internalServerErrorMsg(res, error)
   }
 }
