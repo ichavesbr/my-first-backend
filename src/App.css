@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+@theme inline {
+  /* Primary brand color (purple) */
+  --color-brand-primary: var(--color-purple-400);
+  --color-brand-primary-hover: var(--color-purple-500);
+  --color-brand-primary-light: var(--color-purple-300);
+  --color-brand-primary-muted: var(--color-purple-200);
+
+  /* Accent brand color (pink) */
+  --color-brand-accent: var(--color-pink-400);
+  --color-brand-accent-hover: var(--color-pink-500);
+  --color-brand-accent-light: var(--color-pink-300);
+
+  /* Background */
+  --color-brand-bg: var(--color-pink-50);
+}

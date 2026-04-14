@@ -8,7 +8,7 @@ import { Home } from "./pages/Home"
 
 export default function App() {
   return (
-    <div className="flex flex-col min-h-screen bg-pink-50">
+    <div className="flex flex-col min-h-screen bg-brand-bg">
       <Navbar />
       <main className="flex-1 flex items-center justify-center p-4">
         <Routes>
