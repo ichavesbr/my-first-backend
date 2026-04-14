@@ -11,16 +11,16 @@ const Login = () => {
       />
       <input
         type="password"
-        placeholder="Senha"
+        placeholder="Password"
         className="w-full mb-5 px-4 py-2 rounded-xl border border-brand-primary-muted focus:outline-none focus:ring-2 focus:ring-brand-primary-light"
       />
       <button className="w-full bg-brand-primary-light hover:bg-brand-primary text-white py-2 rounded-xl transition cursor-pointer">
-        Entrar
+        Sign In
       </button>
       <p className="text-center text-sm text-gray-400 mt-4">
-        Não tem conta?{" "}
-        <Link to="/cadastro" className="text-brand-accent hover:underline">
-          Cadastre-se
+        Don't have an account?{" "}
+        <Link to="/register" className="text-brand-accent hover:underline">
+          Register
         </Link>
       </p>
     </div>

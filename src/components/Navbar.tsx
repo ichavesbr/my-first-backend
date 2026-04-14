@@ -10,8 +10,8 @@ const Navbar = () => {
         <Link to="/login" className="text-brand-primary hover:underline transition">
           Login
         </Link>
-        <Link to="/cadastro" className="text-brand-primary hover:underline transition">
-          Cadastro
+        <Link to="/register" className="text-brand-primary hover:underline transition">
+          Register
         </Link>
       </div>
     </nav>
