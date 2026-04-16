@@ -24,6 +24,7 @@ export default function App() {
 }
 
 // Todo list:
-// 15/04/2026 - implement TanStack Form (handle form) + Zod (form validation) + Zustand (state manage)
-// 15/04/2026 - implement unit test
-// 15/04/2026 - implement routes protection
+// implement TanStack Form (handle form) + Zod (form validation)
+// implement zustand (state manage)
+// implement routes protection
+// implement unit test
