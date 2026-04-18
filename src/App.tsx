@@ -5,6 +5,7 @@ import { Login } from "./pages/Login"
 import { Register } from "./pages/Register"
 import { NotFound } from "./pages/NotFound"
 import { Home } from "./pages/Home"
+import { Protected } from "./pages/Protected"
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/protected" element={<Protected />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -24,6 +26,7 @@ export default function App() {
 }
 
 // Todo list:
+// config dns
 // implement TanStack Form (handle form) + Zod (form validation)
 // implement zustand (state manage)
 // implement routes protection
