@@ -1,13 +1,8 @@
 import { useForm } from "@tanstack/react-form"
 import { Link } from "react-router-dom"
 import * as z from "zod"
-
-const inputStyle =
-  "w-full mb-3 px-4 py-2 rounded-xl border border-brand-primary-muted focus:outline-none focus:ring-2 focus:ring-brand-primary-light"
-const buttonStyle =
-  "w-full bg-brand-primary-light hover:bg-brand-primary text-white py-2 rounded-xl transition cursor-pointer"
-const inputErrorStyle = "border-red-400 focus:ring-red-300"
-const inputSelectedStyle = "border-brand-primary-muted focus:ring-brand-primary-light"
+import { buttonStyle, formStyle, inputErrorStyle, inputSelectedStyle, inputStyle } from "../utils/styles"
+import { ErrorMessage } from "../components/ErrorMessage"
 
 // Schema de validacao do form
 const formSchema = z
@@ -67,13 +62,13 @@ const RegisterTest = () => {
           onChange={e => field.handleChange(e.target.value)}
           className={`${inputStyle} ${hasError ? inputErrorStyle : inputSelectedStyle}`}
         />
-        {hasError && <p className="text-red-500 text-xs">{errors[0]?.message}</p>}
+        {hasError && <ErrorMessage message={errors[0]?.message} />}
       </div>
     )
   }
 
   return (
-    <form onSubmit={e => (e.preventDefault(), handleSubmit())} className="bg-white p-10">
+    <form onSubmit={e => (e.preventDefault(), handleSubmit())} className={formStyle}>
       <h1 className="text-2xl font-semibold text-brand-primary mb-6 text-center">Register</h1>
 
       <Field name="name">{field => <TextField field={field} type="text" placeholder="name" />}</Field>
