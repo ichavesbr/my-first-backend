@@ -1,94 +1,102 @@
-import z from "zod"
-import { useForm } from "@tanstack/react-form"
+import * as z from "zod"
 import { Link } from "react-router-dom"
+import { useForm } from "@tanstack/react-form"
+import { ErrorMessage } from "../components/ErrorMessage"
 import { supabaseClient } from "../lib/supabaseClient"
-import { useState } from "react"
+import { buttonStyle, formStyle, inputErrorStyle, inputSelectedStyle, inputStyle } from "../utils/styles"
+// Schema de validacao do form
+const formSchema = z
+  .object({
+    name: z.string().trim().min(3, "Name must be at least 3 characters"),
+    email: z.email("Please enter a valid email").trim().toLowerCase(),
+    password: z.string().trim().min(8, "Password must be at least 8 characters").max(20),
+    confirmPassword: z.string().trim().min(8, "Confirm password must be at least 8 characters").max(20),
+  })
+  .required()
+  .strict() // evita que outras propriedades sejam enviadas, nada alem de name, email, password e confirmPassword
+  .refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
 
-const buttonStyle =
-  "w-full bg-brand-primary-light hover:bg-brand-primary text-white py-2 rounded-xl transition cursor-pointer"
-const inputStyle =
-  "w-full mb-3 px-4 py-2 rounded-xl border border-brand-primary-muted focus:outline-none focus:ring-2 focus:ring-brand-primary-light"
-const inputErrorStyle = "border-red-400 focus:ring-red-300"
-const inputSelectedStyle = "border-brand-primary-muted focus:ring-brand-primary-light"
+// funcao para conectar com o BD do supabase
+const handleSupabaseConnection = async ({ value }: { value: User }) => {
+  const { data, status, error } = await supabaseClient
+    .from("users")
+    .insert([{ name: value.name, email: value.email, password: value.password }])
+    .select()
+  console.log(data, status)
+  if (error) throw new Error(error.message)
 
-const formSchema = z.object({
-  name: z.string().min(3, { message: "Name must be at least 3 characters" }),
-  email: z.email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  confirmPassword: z.string().min(6, { message: "Password must be the same" }),
-})
+  return { data, status }
+}
 
+type User = z.infer<typeof formSchema>
 const Register = () => {
-  const [userName, setUserName] = useState("")
-  const [userEmail, setUserEmail] = useState("")
-  const [userPassword, setUserPassword] = useState("")
-
-  const { Field, handleSubmit } = useForm({
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
-    onSubmit: async ({ value }) => console.log(value),
-    validators: { onSubmit: formSchema, onBlur: formSchema },
+  // Tanstack Form configuration
+  const { Field, Subscribe, handleSubmit } = useForm({
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "" } as User,
+    validators: { onBlur: formSchema, onSubmit: formSchema }, // onBlur validacao quando clica fora do input
+    onSubmit: ({ value }) => handleSupabaseConnection({ value }), // envia os dados do user para o supabase
   })
 
   type FieldProps<T extends string | number> = {
-    state: { value: T; meta: { errors: ({ message: string } | undefined)[]; isTouched: boolean } }
+    state: {
+      value: T
+      meta: {
+        errors: ({ message: string } | undefined)[]
+        isTouched: boolean
+      }
+    }
     handleChange: (value: T) => void
     handleBlur: () => void
   }
 
-  const TextField = ({
-    field,
-    type,
-    placeholder,
-  }: {
+  type TextFieldProps = {
     field: FieldProps<string>
-    type?: string
-    placeholder?: string
-  }) => {
+    type: string
+    placeholder: string
+  }
+
+  // Component created for input with tanstack validation
+  const TextField = ({ field, type, placeholder }: TextFieldProps) => {
     const { errors, isTouched } = field.state.meta
     const hasError = errors.length > 0 && isTouched
+
     return (
       <div className="mb-4">
         <input
           type={type}
           value={field.state.value}
-          onChange={e => field.handleChange(e.target.value)}
-          onBlur={field.handleBlur}
           placeholder={placeholder}
+          onBlur={field.handleBlur}
+          onChange={e => field.handleChange(e.target.value)}
           className={`${inputStyle} ${hasError ? inputErrorStyle : inputSelectedStyle}`}
         />
-        {hasError && <span className="text-red-500 text-xs mt-1 block">{errors[0]?.message}</span>}
+        {hasError && <ErrorMessage message={errors[0]?.message} />}
       </div>
     )
   }
 
-  const handleForm = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    handleSubmit()
-  }
-
-  const handleNewUser = async () => {
-    const { data, status, error } = await supabaseClient
-      .from("users")
-      .insert([{ name: userName, email: userEmail, password: userPassword }])
-      .select()
-    console.log(data, status)
-    if (error) return console.log(error)
-  }
-
   return (
-    <form onSubmit={handleForm} className="bg-white rounded-2xl shadow-md p-8 w-full max-w-sm">
+    <form onSubmit={e => (e.preventDefault(), handleSubmit())} className={formStyle}>
       <h1 className="text-2xl font-semibold text-brand-primary mb-6 text-center">Register</h1>
 
       <Field name="name">{field => <TextField field={field} type="text" placeholder="name" />}</Field>
-      <Field name="email">{field => <TextField field={field} type="email" placeholder="email" />}</Field>
+      <Field name="email">{field => <TextField field={field} type="email" placeholder="e-mail" />}</Field>
       <Field name="password">{field => <TextField field={field} type="password" placeholder="password" />}</Field>
       <Field name="confirmPassword">
         {field => <TextField field={field} type="password" placeholder="confirm password" />}
       </Field>
 
-      <button onClick={handleNewUser} className={buttonStyle}>
-        Create account
-      </button>
+      {/* desabilita botao enquanto o form esta enviando */}
+      <Subscribe selector={state => [state.isSubmitting]}>
+        {([isSubmitting]) => (
+          <button disabled={isSubmitting} className={buttonStyle}>
+            {isSubmitting ? "Creating account..." : "Create account"}
+          </button>
+        )}
+      </Subscribe>
 
       <p className="text-center text-sm text-gray-400 mt-4">
         Already have an account?{" "}
@@ -102,6 +110,10 @@ const Register = () => {
 
 export { Register }
 
-// implementar tanstack form + zod
-// verificar se senha eh igual
-// implementar bcrypt + JWT
+// usar bcrypt em algum lugar
+// limpar form apos enviar
+// redirecionar para pagina protegida
+// aviso de que se cadastrou com sucesso
+// verificar se ja nao tem outro usuario cadastrado
+// apos redirecionado/logado trocar o "login" da navbar pelo nome do user
+// se o user tentar acessar /login ou /register mandar de volta para pagina inicial

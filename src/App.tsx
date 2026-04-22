@@ -5,7 +5,6 @@ import { Login } from "./pages/Login"
 import { Register } from "./pages/Register"
 import { NotFound } from "./pages/NotFound"
 import { Home } from "./pages/Home"
-import { RegisterTest } from "./pages/RegisterTest"
 
 export default function App() {
   return (
@@ -16,7 +15,6 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/registercopy" element={<RegisterTest />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
