@@ -4,92 +4,151 @@ import { useForm } from "@tanstack/react-form"
 import { ErrorMessage } from "../components/ErrorMessage"
 import { supabaseClient } from "../lib/supabaseClient"
 import { buttonStyle, formStyle, inputErrorStyle, inputSelectedStyle, inputStyle } from "../utils/styles"
-// Schema de validacao do form
-const formSchema = z
-  .object({
-    name: z.string().trim().min(3, "Name must be at least 3 characters"),
-    email: z.email("Please enter a valid email").trim().toLowerCase(),
-    password: z.string().trim().min(8, "Password must be at least 8 characters").max(20),
-    confirmPassword: z.string().trim().min(8, "Confirm password must be at least 8 characters").max(20),
-  })
-  .required()
-  .strict() // evita que outras propriedades sejam enviadas, nada alem de name, email, password e confirmPassword
-  .refine(data => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  })
 
-// funcao para conectar com o BD do supabase
-const handleSupabaseConnection = async ({ value }: { value: User }) => {
-  const { data, status, error } = await supabaseClient
-    .from("users")
-    .insert([{ name: value.name, email: value.email, password: value.password }])
-    .select()
-  console.log(data, status)
-  if (error) throw new Error(error.message)
-
-  return { data, status }
+type User = {
+  name: string
+  email: string
+  password: string
+  confirmPassword: string
 }
 
-type User = z.infer<typeof formSchema>
+type TextFieldField = {
+  state: {
+    value: unknown
+    meta: {
+      errors: (string | undefined)[]
+      isTouched: boolean
+    }
+  }
+  handleChange: (value: string) => void
+  handleBlur: () => void
+}
+
+type TextFieldProps = {
+  field: TextFieldField
+  type: string
+  placeholder: string
+}
+
+const TextField = ({ field, type, placeholder }: TextFieldProps) => {
+  // field.state.meta -> contains functions related to "input fields"
+  const { errors, isTouched } = field.state.meta
+
+  // isTouched -> means input field has focus on it, selected (user is typing)
+  const hasError = errors.length > 0 && isTouched
+
+  return (
+    <div className="mb-4">
+      <input
+        type={type}
+        value={field.state.value as string}
+        placeholder={placeholder}
+        onBlur={field.handleBlur} // onBlur -> means when input loses focus (user click outside of input)
+        onChange={e => field.handleChange(e.target.value)}
+        className={`${inputStyle} ${hasError ? inputErrorStyle : inputSelectedStyle}`}
+      />
+      {hasError && <ErrorMessage message={errors[0]} />}
+    </div>
+  )
+}
+
 const Register = () => {
   // Tanstack Form configuration
   const { Field, Subscribe, handleSubmit } = useForm({
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" } as User,
-    validators: { onBlur: formSchema, onSubmit: formSchema }, // onBlur validacao quando clica fora do input
-    onSubmit: ({ value }) => handleSupabaseConnection({ value }), // envia os dados do user para o supabase
+    onSubmit: ({ value }) => handleSupabaseAuth({ value }),
   })
 
-  type FieldProps<T extends string | number> = {
-    state: {
-      value: T
-      meta: {
-        errors: ({ message: string } | undefined)[]
-        isTouched: boolean
-      }
-    }
-    handleChange: (value: T) => void
-    handleBlur: () => void
-  }
+  // Send user's data to supabase DB
+  const handleSupabaseAuth = async ({ value }: { value: User }) => {
+    const { data, error } = await supabaseClient.auth.signUp({
+      email: value.email,
+      password: value.password,
+      options: {
+        data: { name: value.name },
+      },
+    })
 
-  type TextFieldProps = {
-    field: FieldProps<string>
-    type: string
-    placeholder: string
-  }
+    console.log("data do supabase function: ", data)
 
-  // Component created for input with tanstack validation
-  const TextField = ({ field, type, placeholder }: TextFieldProps) => {
-    const { errors, isTouched } = field.state.meta
-    const hasError = errors.length > 0 && isTouched
-
-    return (
-      <div className="mb-4">
-        <input
-          type={type}
-          value={field.state.value}
-          placeholder={placeholder}
-          onBlur={field.handleBlur}
-          onChange={e => field.handleChange(e.target.value)}
-          className={`${inputStyle} ${hasError ? inputErrorStyle : inputSelectedStyle}`}
-        />
-        {hasError && <ErrorMessage message={errors[0]?.message} />}
-      </div>
-    )
+    if (error) throw new Error(error.message)
+    return data
   }
 
   return (
     <form onSubmit={e => (e.preventDefault(), handleSubmit())} className={formStyle}>
       <h1 className="text-2xl font-semibold text-brand-primary mb-6 text-center">Register</h1>
 
-      <Field name="name">{field => <TextField field={field} type="text" placeholder="name" />}</Field>
-      <Field name="email">{field => <TextField field={field} type="email" placeholder="e-mail" />}</Field>
-      <Field name="password">{field => <TextField field={field} type="password" placeholder="password" />}</Field>
-      <Field name="confirmPassword">
+      <Field
+        name="name"
+        validators={{
+          onBlur: ({ value }) => {
+            const r = z.string().trim().min(3, "Name must be at least 3 characters").safeParse(value)
+            return r.success ? undefined : r.error.issues[0]?.message
+          },
+          onSubmit: ({ value }) => {
+            const r = z.string().trim().min(3, "Name must be at least 3 characters").safeParse(value)
+            return r.success ? undefined : r.error.issues[0]?.message
+          },
+        }}>
+        {field => <TextField field={field} type="text" placeholder="name" />}
+      </Field>
+      <Field
+        name="email"
+        validators={{
+          onBlur: ({ value }) => {
+            const r = z.email("Please enter a valid email").safeParse(value)
+            return r.success ? undefined : r.error.issues[0]?.message
+          },
+          onSubmit: ({ value }) => {
+            const r = z.email("Please enter a valid email").safeParse(value)
+            return r.success ? undefined : r.error.issues[0]?.message
+          },
+        }}>
+        {field => <TextField field={field} type="email" placeholder="e-mail" />}
+      </Field>
+      <Field
+        name="password"
+        validators={{
+          onBlur: ({ value }) => {
+            const r = z.string().trim().min(8, "Password must be at least 8 characters").max(20).safeParse(value)
+            return r.success ? undefined : r.error.issues[0]?.message
+          },
+          onSubmit: ({ value }) => {
+            const r = z.string().trim().min(8, "Password must be at least 8 characters").max(20).safeParse(value)
+            return r.success ? undefined : r.error.issues[0]?.message
+          },
+        }}>
+        {field => <TextField field={field} type="password" placeholder="password" />}
+      </Field>
+      <Field
+        name="confirmPassword"
+        validators={{
+          onBlur: ({ value, fieldApi }) => {
+            const r = z
+              .string()
+              .trim()
+              .min(8, "Confirm password must be at least 8 characters")
+              .max(20)
+              .safeParse(value)
+            if (!r.success) return r.error.issues[0]?.message
+            if (value !== fieldApi.form.getFieldValue("password")) return "Passwords don't match"
+          },
+          onSubmit: ({ value, fieldApi }) => {
+            const r = z
+              .string()
+              .trim()
+              .min(8, "Confirm password must be at least 8 characters")
+              .max(20)
+              .safeParse(value)
+            if (!r.success) return r.error.issues[0]?.message
+            if (value !== fieldApi.form.getFieldValue("password")) return "Passwords don't match"
+          },
+        }}>
         {field => <TextField field={field} type="password" placeholder="confirm password" />}
       </Field>
 
-      {/* desabilita botao enquanto o form esta enviando */}
+      {/* Disable button while submiting form */}
       <Subscribe selector={state => [state.isSubmitting]}>
         {([isSubmitting]) => (
           <button disabled={isSubmitting} className={buttonStyle}>
