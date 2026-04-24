@@ -52,6 +52,30 @@ const TextField = ({ field, type, placeholder }: TextFieldProps) => {
   )
 }
 
+const nameSchema = z.string().trim().min(3, "Name must be at least 3 characters")
+const emailSchema = z.email("Please enter a valid email")
+const passwordSchema = z.string().trim().min(8, "Password must be at least 8 characters").max(20)
+const confirmPasswordSchema = z.string().trim().min(8, "Confirm password must be at least 8 characters").max(20)
+
+const validate = (schema: z.ZodType, value: string) => {
+  const result = schema.safeParse(value)
+  return result.success ? undefined : result.error.issues[0]?.message
+}
+
+type ConfirmPasswordParams = {
+  value: string
+  fieldApi: { form: { getFieldValue: (name: "password") => string } }
+}
+
+const validateName = ({ value }: { value: string }) => validate(nameSchema, value)
+const validateEmail = ({ value }: { value: string }) => validate(emailSchema, value)
+const validatePassword = ({ value }: { value: string }) => validate(passwordSchema, value)
+const validateConfirmPassword = ({ value, fieldApi }: ConfirmPasswordParams) => {
+  const error = validate(confirmPasswordSchema, value)
+  if (error) return error
+  if (value !== fieldApi.form.getFieldValue("password")) return "Passwords don't match"
+}
+
 const Register = () => {
   // Tanstack Form configuration
   const { Field, Subscribe, handleSubmit } = useForm({
@@ -79,72 +103,16 @@ const Register = () => {
     <form onSubmit={e => (e.preventDefault(), handleSubmit())} className={formStyle}>
       <h1 className="text-2xl font-semibold text-brand-primary mb-6 text-center">Register</h1>
 
-      <Field
-        name="name"
-        validators={{
-          onBlur: ({ value }) => {
-            const r = z.string().trim().min(3, "Name must be at least 3 characters").safeParse(value)
-            return r.success ? undefined : r.error.issues[0]?.message
-          },
-          onSubmit: ({ value }) => {
-            const r = z.string().trim().min(3, "Name must be at least 3 characters").safeParse(value)
-            return r.success ? undefined : r.error.issues[0]?.message
-          },
-        }}>
+      <Field name="name" validators={{ onBlur: validateName, onSubmit: validateName }}>
         {field => <TextField field={field} type="text" placeholder="name" />}
       </Field>
-      <Field
-        name="email"
-        validators={{
-          onBlur: ({ value }) => {
-            const r = z.email("Please enter a valid email").safeParse(value)
-            return r.success ? undefined : r.error.issues[0]?.message
-          },
-          onSubmit: ({ value }) => {
-            const r = z.email("Please enter a valid email").safeParse(value)
-            return r.success ? undefined : r.error.issues[0]?.message
-          },
-        }}>
+      <Field name="email" validators={{ onBlur: validateEmail, onSubmit: validateEmail }}>
         {field => <TextField field={field} type="email" placeholder="e-mail" />}
       </Field>
-      <Field
-        name="password"
-        validators={{
-          onBlur: ({ value }) => {
-            const r = z.string().trim().min(8, "Password must be at least 8 characters").max(20).safeParse(value)
-            return r.success ? undefined : r.error.issues[0]?.message
-          },
-          onSubmit: ({ value }) => {
-            const r = z.string().trim().min(8, "Password must be at least 8 characters").max(20).safeParse(value)
-            return r.success ? undefined : r.error.issues[0]?.message
-          },
-        }}>
+      <Field name="password" validators={{ onBlur: validatePassword, onSubmit: validatePassword }}>
         {field => <TextField field={field} type="password" placeholder="password" />}
       </Field>
-      <Field
-        name="confirmPassword"
-        validators={{
-          onBlur: ({ value, fieldApi }) => {
-            const r = z
-              .string()
-              .trim()
-              .min(8, "Confirm password must be at least 8 characters")
-              .max(20)
-              .safeParse(value)
-            if (!r.success) return r.error.issues[0]?.message
-            if (value !== fieldApi.form.getFieldValue("password")) return "Passwords don't match"
-          },
-          onSubmit: ({ value, fieldApi }) => {
-            const r = z
-              .string()
-              .trim()
-              .min(8, "Confirm password must be at least 8 characters")
-              .max(20)
-              .safeParse(value)
-            if (!r.success) return r.error.issues[0]?.message
-            if (value !== fieldApi.form.getFieldValue("password")) return "Passwords don't match"
-          },
-        }}>
+      <Field name="confirmPassword" validators={{ onBlur: validateConfirmPassword, onSubmit: validateConfirmPassword }}>
         {field => <TextField field={field} type="password" placeholder="confirm password" />}
       </Field>
 
@@ -168,11 +136,3 @@ const Register = () => {
 }
 
 export { Register }
-
-// usar bcrypt em algum lugar
-// limpar form apos enviar
-// redirecionar para pagina protegida
-// aviso de que se cadastrou com sucesso
-// verificar se ja nao tem outro usuario cadastrado
-// apos redirecionado/logado trocar o "login" da navbar pelo nome do user
-// se o user tentar acessar /login ou /register mandar de volta para pagina inicial
